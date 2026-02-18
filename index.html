@@ -24,7 +24,7 @@
       text-align:center;
       box-shadow:0 0 12px #ef4444;
     }
-    input,button{
+    input,select,button{
       width:100%;
       padding:10px;
       margin:6px 0;
@@ -54,8 +54,19 @@
 <div class="box">
   <h2>🩸 Blood Donor Search</h2>
 
-  <input id="blood" placeholder="Blood Group (Ex: O+)" />
-  <input id="city" placeholder="City (Ex: Chennai)" />
+  <select id="blood">
+    <option value="">Select Blood Group</option>
+    <option>O+</option>
+    <option>O-</option>
+    <option>A+</option>
+    <option>A-</option>
+    <option>B+</option>
+    <option>B-</option>
+    <option>AB+</option>
+    <option>AB-</option>
+  </select>
+
+  <input id="city" placeholder="Enter City (Ex: Chennai)" />
 
   <button onclick="searchDonor()">Search</button>
 
@@ -68,28 +79,31 @@
   import { getFirestore, collection, query, where, getDocs }
   from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // 🔥 YOUR FIREBASE CONFIG (ALREADY CORRECT)
   const firebaseConfig = {
     apiKey: "AIzaSyC9xmxYgma37ABQKKmVbOME-ndACMPB200",
     authDomain: "blood-donar-9f832.firebaseapp.com",
     projectId: "blood-donar-9f832",
     storageBucket: "blood-donar-9f832.firebasestorage.app",
     messagingSenderId: "913291193453",
-    appId: "1:913291193453:web:f7f5f0f6fd1d103c03a364"
+    appId: "1:913291193453:web:f7f5f0f6fd1d103c03a364",
+    measurementId: "G-PFHG21FYVR"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // 🔍 SEARCH FUNCTION
   window.searchDonor = async function(){
 
-    let blood = document.getElementById("blood").value.trim();
-    let city  = document.getElementById("city").value.trim();
+    let blood = document.getElementById("blood").value.toLowerCase();
+    let city  = document.getElementById("city").value.trim().toLowerCase();
 
-    if(!blood || !city){
-      alert("Please enter Blood Group and City");
+    if(blood === ""){
+      alert("Please select a Blood Group");
+      return;
+    }
+
+    if(city === ""){
+      alert("Please enter City");
       return;
     }
 
@@ -109,7 +123,7 @@
         <p>
           <b>${d.name}</b><br>
           📞 ${d.phone}<br>
-          🩸 ${d.blood} | 📍 ${d.city}
+          🩸 ${d.blood.toUpperCase()} | 📍 ${d.city.toUpperCase()}
         </p>
         <hr>
       `;
