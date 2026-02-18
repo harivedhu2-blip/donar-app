@@ -1,140 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blood Donor Search</title>
-
-  <style>
-    body{
-      font-family: Arial, sans-serif;
-      background:#0f172a;
-      color:white;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      margin:0;
-    }
-    .box{
-      background:#020617;
-      padding:25px;
-      border-radius:10px;
-      width:320px;
-      text-align:center;
-      box-shadow:0 0 12px #ef4444;
-    }
-    input,select,button{
-      width:100%;
-      padding:10px;
-      margin:6px 0;
-      border-radius:5px;
-      border:none;
-      outline:none;
-      font-size:14px;
-    }
-    button{
-      background:#ef4444;
-      color:white;
-      font-weight:bold;
-      cursor:pointer;
-    }
-    .result{
-      margin-top:10px;
-      text-align:left;
-      font-size:14px;
-      max-height:200px;
-      overflow:auto;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blood Donor Search</title>
+<style>
+body{background:#0f172a;color:white;font-family:Arial;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+.box{background:#020617;padding:25px;border-radius:10px;width:320px;text-align:center;box-shadow:0 0 12px #ef4444}
+input,select,button{width:100%;padding:10px;margin:6px 0;border-radius:5px;border:none}
+button{background:#ef4444;color:white;font-weight:bold}
+</style>
 </head>
-
 <body>
 
 <div class="box">
-  <h2>🩸 Blood Donor Search</h2>
+<h2>🩸 Blood Donor Search</h2>
 
-  <select id="blood">
-    <option value="">Select Blood Group</option>
-    <option>O+</option>
-    <option>O-</option>
-    <option>A+</option>
-    <option>A-</option>
-    <option>B+</option>
-    <option>B-</option>
-    <option>AB+</option>
-    <option>AB-</option>
-  </select>
+<select id="blood">
+<option value="">Select Blood</option>
+<option>O+</option><option>O-</option>
+<option>A+</option><option>A-</option>
+<option>B+</option><option>B-</option>
+<option>AB+</option><option>AB-</option>
+</select>
 
-  <input id="city" placeholder="Enter City (Ex: Chennai)" />
+<input id="city" placeholder="Enter City">
+<button onclick="search()">Search</button>
 
-  <button onclick="searchDonor()">Search</button>
-
-  <div id="result" class="result"></div>
+<div id="result"></div>
 </div>
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, query, where, getDocs }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+const firebaseConfig = {
+  apiKey: "AIzaSyC9xmxYgma37ABQKKmVbOME-ndACMPB200",
+  authDomain: "blood-donar-9f832.firebaseapp.com",
+  projectId: "blood-donar-9f832",
+  storageBucket: "blood-donar-9f832.firebasestorage.app",
+  messagingSenderId: "913291193453",
+  appId: "1:913291193453:web:f7f5f0f6fd1d103c03a364"
+};
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyC9xmxYgma37ABQKKmVbOME-ndACMPB200",
-    authDomain: "blood-donar-9f832.firebaseapp.com",
-    projectId: "blood-donar-9f832",
-    storageBucket: "blood-donar-9f832.firebasestorage.app",
-    messagingSenderId: "913291193453",
-    appId: "1:913291193453:web:f7f5f0f6fd1d103c03a364",
-    measurementId: "G-PFHG21FYVR"
-  };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+window.search = async () => {
 
-  window.searchDonor = async function(){
+  let blood = document.getElementById("blood").value.toLowerCase();
+  let city = document.getElementById("city").value.toLowerCase();
 
-    let blood = document.getElementById("blood").value.toLowerCase();
-    let city  = document.getElementById("city").value.trim().toLowerCase();
+  if(!blood || !city) return alert("Enter all fields");
 
-    if(blood === ""){
-      alert("Please select a Blood Group");
-      return;
-    }
+  const q = query(collection(db,"donors"),
+    where("bloodLower","==",blood),
+    where("cityLower","==",city));
 
-    if(city === ""){
-      alert("Please enter City");
-      return;
-    }
+  const snap = await getDocs(q);
 
-    const q = query(
-      collection(db, "donors"),
-      where("blood", "==", blood),
-      where("city", "==", city)
-    );
+  let out = "";
+  snap.forEach(d=>{
+    let x=d.data();
+    out += `<p><b>${x.name}</b><br>📞 ${x.phone}</p><hr>`;
+  });
 
-    const snapshot = await getDocs(q);
-
-    let output = "";
-
-    snapshot.forEach(doc => {
-      let d = doc.data();
-      output += `
-        <p>
-          <b>${d.name}</b><br>
-          📞 ${d.phone}<br>
-          🩸 ${d.blood.toUpperCase()} | 📍 ${d.city.toUpperCase()}
-        </p>
-        <hr>
-      `;
-    });
-
-    document.getElementById("result").innerHTML =
-      output || "❌ No donors found";
-
-  }
-
+  document.getElementById("result").innerHTML = out || "No donors found";
+}
 </script>
-
 </body>
 </html>
