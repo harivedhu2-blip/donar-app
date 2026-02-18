@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Donor Search</title>
+
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      background:#0f172a;
+      color:white;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      margin:0;
+    }
+    .box{
+      background:#020617;
+      padding:25px;
+      border-radius:10px;
+      width:320px;
+      text-align:center;
+      box-shadow:0 0 12px #ef4444;
+    }
+    input,button{
+      width:100%;
+      padding:10px;
+      margin:6px 0;
+      border-radius:5px;
+      border:none;
+      outline:none;
+      font-size:14px;
+    }
+    button{
+      background:#ef4444;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    .result{
+      margin-top:10px;
+      text-align:left;
+      font-size:14px;
+      max-height:200px;
+      overflow:auto;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🩸 Blood Donor Search</h2>
+
+  <input id="blood" placeholder="Blood Group (Ex: O+)" />
+  <input id="city" placeholder="City (Ex: Chennai)" />
+
+  <button onclick="searchDonor()">Search</button>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script type="module">
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, query, where, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // 🔥 YOUR FIREBASE CONFIG (ALREADY CORRECT)
+  const firebaseConfig = {
+    apiKey: "AIzaSyC9xmxYgma37ABQKKmVbOME-ndACMPB200",
+    authDomain: "blood-donar-9f832.firebaseapp.com",
+    projectId: "blood-donar-9f832",
+    storageBucket: "blood-donar-9f832.firebasestorage.app",
+    messagingSenderId: "913291193453",
+    appId: "1:913291193453:web:f7f5f0f6fd1d103c03a364"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 🔍 SEARCH FUNCTION
+  window.searchDonor = async function(){
+
+    let blood = document.getElementById("blood").value.trim();
+    let city  = document.getElementById("city").value.trim();
+
+    if(!blood || !city){
+      alert("Please enter Blood Group and City");
+      return;
+    }
+
+    const q = query(
+      collection(db, "donors"),
+      where("blood", "==", blood),
+      where("city", "==", city)
+    );
+
+    const snapshot = await getDocs(q);
+
+    let output = "";
+
+    snapshot.forEach(doc => {
+      let d = doc.data();
+      output += `
+        <p>
+          <b>${d.name}</b><br>
+          📞 ${d.phone}<br>
+          🩸 ${d.blood} | 📍 ${d.city}
+        </p>
+        <hr>
+      `;
+    });
+
+    document.getElementById("result").innerHTML =
+      output || "❌ No donors found";
+
+  }
+
+</script>
+
+</body>
+</html>
